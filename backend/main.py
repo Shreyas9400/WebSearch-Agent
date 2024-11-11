@@ -49,6 +49,9 @@ class SearchMode(str, Enum):
     AUTO = "Auto (Knowledge Base + Web)"
     WEB_ONLY = "Web Search Only"
 
+    def __str__(self):
+        return self.value  # This will return the string value instead of the enum name
+
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User's message")
     history: List[List[str]] = Field(default=[], description="Chat history")
@@ -71,18 +74,13 @@ class ChatResponse(BaseModel):
 async def chat_endpoint(request: ChatRequest):
     """
     Process a chat message and return a response.
-    
-    Args:
-        request (ChatRequest): The chat request containing message and parameters
-        
-    Returns:
-        ChatResponse: The assistant's response with metadata
     """
     try:
         logger.info(f"Received chat request: {request.message}")
-        
-        # Determine if we should force web search
+        logger.info(f"Search mode requested: {request.search_mode.value}")  # Use .value
+        logger.info(f"Raw search mode value: {request.search_mode.value}")  # Use .value
         force_web_search = request.search_mode == SearchMode.WEB_ONLY
+        logger.info(f"Force web search mode: {force_web_search}")
         
         # Get response from chatbot
         start_time = datetime.now()
@@ -97,8 +95,8 @@ async def chat_endpoint(request: ChatRequest):
                 scoring_method=request.scoring_method,
                 selected_engines=request.engines,
                 safe_search=request.safe_search,
-                language=request.language.split(" - ")[0],  # Extract language code
-                force_web_search=force_web_search
+                language=request.language.split(" - ")[0],
+                force_web_search=force_web_search  # This should now correctly pass True for Web Search Only
             )
         )
         end_time = datetime.now()
