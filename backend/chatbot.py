@@ -708,8 +708,8 @@ class ChatBot:
             logger.info(f'Current conversation context:\n{formatted_history}')
 
             # Convert the force_web_search radio button value to boolean
-            force_web_search = force_web_search == "Web Search Only"
-            logger.info(f'Force web search mode: {force_web_search}')
+##            force_web_search = force_web_search == "Web Search Only"
+##            logger.info(f'Force web search mode: {force_web_search}')
 
             # If force_web_search is True, skip query type determination
             if force_web_search:
