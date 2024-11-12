@@ -5,14 +5,37 @@ from typing import List, Optional, Dict, Any
 from enum import Enum
 from datetime import datetime
 from chatbot import ChatBot, ScoringMethod, SafeSearch, QueryType
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Configure CORS
+# Configure CORS with environment-based origins
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+# Set up origins based on environment
+origins = [
+    "http://localhost:3000",  # Local development
+    "http://127.0.0.1:3000",  # Alternative local development
+]
+
+# Add production frontend URL if it exists
+if FRONTEND_URL and FRONTEND_URL not in origins:
+    origins.append(FRONTEND_URL)
+
+# If in development, allow all origins
+if ENVIRONMENT == "development":
+    origins = ["*"]
+
+# Configure CORS with the determined origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
