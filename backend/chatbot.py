@@ -34,9 +34,44 @@ logger.info("Starting application initialization")
 load_dotenv()
 logger.info("Environment variables loaded")
 
-# Initialize Groq client
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-logger.info("Groq client initialized")
+class GroqKeyManager:
+    def __init__(self, api_keys: List[str]):
+        """Initialize the key manager with multiple API keys."""
+        if not api_keys:
+            raise ValueError("At least one API key must be provided")
+        
+        self.api_keys = api_keys
+        self.key_cycle = cycle(api_keys)
+        self.clients = {key: Groq(api_key=key) for key in api_keys}
+        self.lock = Lock()
+        self.current_key = next(self.key_cycle)
+    
+    def get_next_client(self) -> Groq:
+        """Get the next Groq client in rotation."""
+        with self.lock:
+            self.current_key = next(self.key_cycle)
+            return self.clients[self.current_key]
+    
+    def get_current_client(self) -> Groq:
+        """Get the current Groq client."""
+        return self.clients[self.current_key]
+    
+    @property
+    def current_api_key(self) -> str:
+        """Get the current API key."""
+        return self.current_key
+
+# Load environment variables from .env file
+load_dotenv()
+logger.info("Environment variables loaded")
+
+# Initialize Groq key manager
+groq_keys = [
+    os.getenv("GROQ_API_KEY_1"),
+    os.getenv("GROQ_API_KEY_2")
+]
+groq_manager = GroqKeyManager(groq_keys)
+logger.info("Groq key manager initialized")
 
 class ScoringMethod(Enum):
     BM25 = "bm25"
@@ -105,7 +140,7 @@ Classify as "knowledge_base" if the query:
             {"role": "user", "content": f"Previous conversation:\n{chat_context}\n\nQuery to classify: {query}\n\nRespond ONLY with 'knowledge_base' or 'web_search':"}
         ]
 
-        response = groq_client.chat.completions.create(
+        response = groq_manager.get_next_client().chat.completions.create(
             messages=messages,
             model="llama-3.1-70b-versatile",
             temperature=temperature,
@@ -159,7 +194,7 @@ Guidelines:
             {"role": "user", "content": f"Previous conversation:\n{chat_context}\n\nCurrent query: {query}\n\nProvide a comprehensive response based on your knowledge base and the conversation context."}
         ]
 
-        response = groq_client.chat.completions.create(
+        response = groq_manager.get_next_client().chat.completions.create(
             messages=messages,
             model="llama-3.1-70b-versatile",
             temperature=temperature,
@@ -234,7 +269,7 @@ Current query: {query}
 Please rephrase this query into a complete, contextual search query following the rules above. The rephrased query should be clear and complete even without the conversation context."""}
         ]
 
-        response = groq_client.chat.completions.create(
+        response = groq_manager.get_next_client().chat.completions.create(
             messages=messages,
             model="llama-3.1-70b-versatile",
             temperature=temperature,
@@ -512,7 +547,7 @@ Instructions:
             {"role": "user", "content": user_prompt}
         ]
 
-        response = groq_client.chat.completions.create(
+        response = groq_manager.get_next_client().chat.completions.create(
             messages=messages,
             model="llama-3.1-70b-versatile",
             max_tokens=5000,
