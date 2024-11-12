@@ -5,6 +5,9 @@ import { ChatMessage } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// Get the API URL from environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
 export const ChatWindow: React.FC = () => {
   const {
     currentChatId,
@@ -65,7 +68,7 @@ export const ChatWindow: React.FC = () => {
         return null;
       }).filter(Boolean);
 
-      const response = await fetch('http://127.0.0.1:8000/api/chat', {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +88,7 @@ export const ChatWindow: React.FC = () => {
       return data.response;
     } catch (error) {
       console.error('Error:', error);
-      return 'Sorry, there was an error processing your request. Please check if the API server is running at http://127.0.0.1:8000/api';
+      return `Sorry, there was an error processing your request. Please check if the API server is running at ${API_URL}/api`;
     } finally {
       setIsLoading(false);
     }
