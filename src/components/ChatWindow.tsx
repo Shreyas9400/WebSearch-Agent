@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, RotateCcw, Undo, Trash2 } from 'lucide-react';
+import { Send, RotateCcw, Undo, Trash2, Copy, Check } from 'lucide-react';
 import { useChatStore } from '../store/chatStore';
 import { ChatMessage } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
@@ -17,6 +17,7 @@ export const ChatWindow: React.FC = () => {
   } = useChatStore();
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [copiedMessageId, setCopiedMessageId] = React.useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentChat = chats.find((chat) => chat.id === currentChatId);
@@ -28,6 +29,18 @@ export const ChatWindow: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [currentChat?.messages]);
+
+  const handleCopyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(index);
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
+  };
 
   const sendMessageToAPI = async (message: string, history: ChatMessage[]) => {
     setIsLoading(true);
@@ -140,15 +153,28 @@ export const ChatWindow: React.FC = () => {
             key={index}
             className={`flex ${
               message.role === 'user' ? 'justify-end' : 'justify-start'
-            } animate-fade-in`}
+            } animate-fade-in group relative`}
           >
             <div
               className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
                 message.role === 'user'
                   ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
                   : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700'
-              } transform transition-all duration-200 hover:shadow-md`}
+              } transform transition-all duration-200 hover:shadow-md relative`}
             >
+              <button
+                onClick={() => handleCopyMessage(message.content, index)}
+                className={`absolute ${
+                  message.role === 'user' ? '-left-12' : '-right-12'
+                } top-2 p-2 opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-all duration-200`}
+                title="Copy message"
+              >
+                {copiedMessageId === index ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 className={`prose ${
