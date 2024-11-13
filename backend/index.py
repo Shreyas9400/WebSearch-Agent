@@ -5,18 +5,15 @@ from typing import List, Optional, Dict, Any
 from enum import Enum
 from datetime import datetime
 from chatbot import ChatBot, ScoringMethod, SafeSearch, QueryType
-import os
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Get the frontend URL from environment variable
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://your-frontend.vercel.app")
-
-# Configure CORS for the deployed frontend
+# Configure CORS - since frontend and backend are deployed together,
+# we only need CORS for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
