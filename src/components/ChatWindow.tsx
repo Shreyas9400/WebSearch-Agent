@@ -5,8 +5,8 @@ import { ChatMessage } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Get the API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+// This should point to your deployed API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://your-api.vercel.app';
 
 export const ChatWindow: React.FC = () => {
   const {
@@ -88,12 +88,12 @@ export const ChatWindow: React.FC = () => {
       return data.response;
     } catch (error) {
       console.error('Error:', error);
-      return `Sorry, there was an error processing your request. Please check if the API server is running at ${API_URL}/api`;
+      return 'Sorry, there was an error processing your request. Please try again later.';
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentChatId || !input.trim() || isLoading) return;
