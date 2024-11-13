@@ -6,36 +6,17 @@ from enum import Enum
 from datetime import datetime
 from chatbot import ChatBot, ScoringMethod, SafeSearch, QueryType
 import os
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Configure CORS with environment-based origins
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+# Get the frontend URL from environment variable
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://your-frontend.vercel.app")
 
-# Set up origins based on environment
-origins = [
-    "http://localhost:3000",  # Local development
-    "http://127.0.0.1:3000",  # Alternative local development
-]
-
-# Add production frontend URL if it exists
-if FRONTEND_URL and FRONTEND_URL not in origins:
-    origins.append(FRONTEND_URL)
-
-# If in development, allow all origins
-if ENVIRONMENT == "development":
-    origins = ["*"]
-
-# Configure CORS with the determined origins
+# Configure CORS for the deployed frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
