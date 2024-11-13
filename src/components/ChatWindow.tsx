@@ -5,9 +5,6 @@ import { ChatMessage } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// This should point to your deployed API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://your-api.vercel.app';
-
 export const ChatWindow: React.FC = () => {
   const {
     currentChatId,
@@ -45,7 +42,7 @@ export const ChatWindow: React.FC = () => {
     }
   };
 
-  const sendMessageToAPI = async (message: string, history: ChatMessage[]) => {
+   const sendMessageToAPI = async (message: string, history: ChatMessage[]) => {
     setIsLoading(true);
     try {
       const apiSettings = {
@@ -68,7 +65,8 @@ export const ChatWindow: React.FC = () => {
         return null;
       }).filter(Boolean);
 
-      const response = await fetch(`${API_URL}/api/chat`, {
+      // Since API is on same domain, use relative path
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
